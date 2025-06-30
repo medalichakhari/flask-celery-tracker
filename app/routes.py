@@ -1,23 +1,21 @@
 from flask import Blueprint, jsonify, request
+from marshmallow import ValidationError
 
+from app.schemas import TrackRequestSchema
 from app.tasks import celery, scrape_and_check
 
 api = Blueprint("api", __name__)
 
 
 @api.route("/track", methods=["POST"])
-def track_url():
-    data = request.get_json() or {}
+def track():
+    try:
+        data = TrackRequestSchema().load(request.get_json())
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 400
 
-    url = data.get("url")
-    keywords = data.get("keywords")
-
-    if not url or not keywords or not isinstance(keywords, list):
-        return jsonify({"error": "Please provide 'url' and list of 'keywords'"}), 400
-
-    task = scrape_and_check.delay(url, keywords)
-
-    return jsonify({"message": "Tracking task created", "task_id": task.id}), 202
+    task = scrape_and_check.delay(data["url"], data["keywords"])
+    return jsonify({"task_id": task.id}), 202
 
 
 @api.route("/status/<task_id>", methods=["GET"])
