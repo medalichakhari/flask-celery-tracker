@@ -1,14 +1,16 @@
 import os
 import re
-from celery import Celery
+
 import requests
 from bs4 import BeautifulSoup
+from celery import Celery
 
 celery = Celery(
     "scheduled_scraper",
     broker=os.getenv("CELERY_BROKER_URL"),
-    backend=os.getenv("CELERY_RESULT_BACKEND")
+    backend=os.getenv("CELERY_RESULT_BACKEND"),
 )
+
 
 @celery.task(name="app.tasks.scrape_and_check")
 def scrape_and_check(url, keywords):
@@ -20,7 +22,7 @@ def scrape_and_check(url, keywords):
         for script_or_style in soup(["script", "style"]):
             script_or_style.decompose()
 
-        text = soup.get_text(separator=' ', strip=True)
+        text = soup.get_text(separator=" ", strip=True)
 
         results = []
         for kw in keywords:
@@ -28,7 +30,7 @@ def scrape_and_check(url, keywords):
             matches = pattern.findall(text)
 
             snippets = []
-            sentences = re.split(r'(?<=[.!?]) +', text)
+            sentences = re.split(r"(?<=[.!?]) +", text)
             for sentence in sentences:
                 if pattern.search(sentence):
                     snippet = sentence.strip()
@@ -37,16 +39,8 @@ def scrape_and_check(url, keywords):
                     if len(snippets) >= 3:
                         break
 
-            results.append({
-                "keyword": kw,
-                "count": len(matches),
-                "snippets": snippets
-            })
+            results.append({"keyword": kw, "count": len(matches), "snippets": snippets})
 
-        return {
-            "url": url,
-            "matches": results
-        }
+        return {"url": url, "matches": results}
     except Exception as e:
         return {"url": url, "error": str(e)}
-

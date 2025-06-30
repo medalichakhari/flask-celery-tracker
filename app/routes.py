@@ -1,7 +1,9 @@
-from flask import Blueprint, request, jsonify
-from app.tasks import scrape_and_check, celery
+from flask import Blueprint, jsonify, request
+
+from app.tasks import celery, scrape_and_check
 
 api = Blueprint("api", __name__)
+
 
 @api.route("/track", methods=["POST"])
 def track_url():
@@ -12,13 +14,11 @@ def track_url():
 
     if not url or not keywords or not isinstance(keywords, list):
         return jsonify({"error": "Please provide 'url' and list of 'keywords'"}), 400
-    
+
     task = scrape_and_check.delay(url, keywords)
 
-    return jsonify({
-        "message": "Tracking task created",
-        "task_id": task.id
-    }), 202
+    return jsonify({"message": "Tracking task created", "task_id": task.id}), 202
+
 
 @api.route("/status/<task_id>", methods=["GET"])
 def get_task_status(task_id):
@@ -29,15 +29,9 @@ def get_task_status(task_id):
     elif task.state == "STARTED":
         response = {"status": "in progress"}
     elif task.state == "FAILURE":
-        response = {
-            "status": "failed",
-            "error": str(task.result)
-        }
+        response = {"status": "failed", "error": str(task.result)}
     elif task.state == "SUCCESS":
-        response = {
-            "status": "completed",
-            "result": task.result
-        }
+        response = {"status": "completed", "result": task.result}
     else:
         response = {"status": task.state.lower()}
 

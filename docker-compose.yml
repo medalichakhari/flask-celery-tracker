@@ -37,3 +37,12 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+      
+  flower:
+    image: mher/flower
+    command: celery -A app.tasks.celery flower
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - rabbitmq
