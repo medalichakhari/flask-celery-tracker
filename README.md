@@ -9,10 +9,21 @@ A Flask-based backend project that allows users to track specific **keywords** o
 - **Flask** – RESTful API backend
 - **Celery** – Background task queue
 - **RabbitMQ** – Message broker
+- **Redis** - Backend for results
 - **BeautifulSoup** – HTML parsing & scraping
 - **Docker + Docker Compose** – Containerized environment
 
 ---
+
+## Analogy
+
+- `Flask` = Waiter taking your order
+
+- `Celery` = Chef cooking it
+
+- `RabbitMQ` = Order ticket system
+
+- `Redis` = Pickup counter where you check if your meal is ready
 
 ## Features
 
