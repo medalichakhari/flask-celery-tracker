@@ -13,6 +13,9 @@ celery = Celery(
     backend=os.getenv("CELERY_RESULT_BACKEND"),
 )
 
+celery.conf.beat_schedule = {}
+celery.conf.timezone = "UTC"
+
 
 @celery.task(name="app.tasks.scrape_and_check")
 def scrape_and_check(url, keywords):
