@@ -25,19 +25,29 @@ services:
     depends_on:
       - rabbitmq
 
+  celery-beat:
+    build: .
+    container_name: celery_beat
+    command: celery -A app.tasks.celery beat --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - rabbitmq
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
-      
+
   redis:
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
-      
+
   flower:
     image: mher/flower
     command: celery -A app.tasks.celery flower
